@@ -10,7 +10,7 @@ select a fixed session and omit the editable session selector. The greeter
 always starts `magnet-session hyprland`; `/etc/greetd/environments` is not used
 in this mode. Authentication still happens in greetd through PAM.
 
-`session.jsonnet` installs `magnet-session hyprland`, the greetd launcher,
+The distro's `magnet-linux/session.jsonnet` installs `magnet-session hyprland`, the greetd launcher,
 and the Hyprland Wayland session entry. Sessions get a private D-Bus session
 and use the runtime directory provisioned by the distro's desktop service.
 `magnet-session --greeter` uses `/etc/greetd/hyprland.lua`, with no desktop key
@@ -18,7 +18,7 @@ bindings or terminal launcher. The greeter compositor exits before the user
 compositor takes the seat. Sway is not part of this package's runtime closure.
 
 Configuration files are installed once by
-[`setup-login.sh`](../../magnet-linux/setup-login.sh), so package syncs do not
+[`setup-login.sh`](https://github.com/magnet-linux/magnet-linux/blob/main/magnet-linux/setup-login.sh), so package syncs do not
 replace manually edited `/etc` files. The greeter account is locked and has a
 separate PAM service. This is a login manager; it does not provide session
-locking. See [DESKTOP.md](../../magnet-linux/DESKTOP.md) for setup and testing.
+locking. See [DESKTOP.md](https://github.com/magnet-linux/magnet-linux/blob/main/magnet-linux/DESKTOP.md) for setup and testing.

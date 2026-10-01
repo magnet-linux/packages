@@ -4,7 +4,7 @@ local shell_tools = (import './base/tools.jsonnet').shell_tools;
 local bubblewrap = (import './bubblewrap.jsonnet').bubblewrap;
 local ca_certificates = (import './ca-certificates.jsonnet').ca_certificates;
 local modules = import './magpkg-modules.libsonnet';
-local commit = '245ac58457491cb9721edfeb3e06402605ba1a20';
+local version = 'v0.1.0';
 
 local moduleFetches = std.flattenArrays([
   [{
@@ -29,7 +29,7 @@ local prepareModules = std.join('\n', [
 
 {
   magpkg: {
-    name: 'magpkg-' + commit,
+    name: 'magpkg-' + version,
     buildEnv: {
       PATH: '/bin',
       CGO_ENABLED: '0',
@@ -44,23 +44,20 @@ local prepareModules = std.join('\n', [
     },
     build: { kind: 'script', script: prepareModules + '\n' + |||
       tar --no-same-owner -xzf /fetch/magpkg.tar.gz
-      cd magnet-linux-*/magpkg
+      cd magpkg-v0.1.0
       mkdir -p /out/bin
       go test -p "$BUILD_PARALLELISM" -mod=readonly ./...
       go build -p "$BUILD_PARALLELISM" -mod=readonly -trimpath -buildvcs=false \
-        -ldflags='-s -w' -o /out/bin/magpkg ./cmd/magpkg
+        -ldflags='-s -w -X main.version=v0.1.0' -o /out/bin/magpkg ./cmd/magpkg
       /out/bin/magpkg --help
     ||| },
     buildDeps: [bootstrap, go],
     runDeps: [shell_tools, bubblewrap, ca_certificates],
     fetch: [{
       filename: 'magpkg.tar.gz',
-      // TODO: mirror this exact archive or publish a source release asset.
-      // GitHub pins the commit's contents, but may change archive compression
-      // and hence this SHA-256. We knowingly accept that limitation for now;
-      // a changed archive will fail verification rather than silently build.
-      sha256: '2dabf81956ffc9ca816fcebadc60d8b8e143e309e680a5390932a8e23a10329c',
-      urls: ['https://github.com/magnet-linux/magnet-linux/archive/' + commit + '.tar.gz'],
+      // Uploaded source release asset: exact published bytes, pinned by hash.
+      sha256: 'b8b0d8102874a5833f5e7d60ea1e587643bcc4762cc1508140530b51a7359e3a',
+      urls: ['https://github.com/magnet-linux/magpkg/releases/download/' + version + '/magpkg-' + version + '.tar.gz'],
     }] + moduleFetches,
   },
 }

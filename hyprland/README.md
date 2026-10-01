@@ -8,8 +8,7 @@ replaces `ranges::starts_with` with equivalent prefix comparison for GCC 15's
 standard library.
 
 ```sh
-nix-shell magnet-linux/shell.nix --run \
-  'magnet-linux/_work/magpkg build --store magnet-linux/_work/store --jobs 3 --parallelism 8 packages/hyprland/hyprland.jsonnet hyprland'
+magpkg build --store _work/store --jobs 3 --parallelism 8 hyprland/hyprland.jsonnet hyprland
 ```
 
 The additional libraries live in `dependencies.jsonnet`. Existing desktop
@@ -24,5 +23,5 @@ are build dependencies rather than desktop applications.
 
 The initial profile omits Xwayland, systemd integration, UWSM and the plugin
 manager. It supplies no panel, audio services, screen locker or desktop portal.
-See [the desktop guide](../../magnet-linux/DESKTOP.md) for the complete system
+See [the desktop guide](https://github.com/magnet-linux/magnet-linux/blob/main/magnet-linux/DESKTOP.md) for the complete system
 selection, QEMU setup, manual configuration and graphical session test.

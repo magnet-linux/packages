@@ -26,5 +26,5 @@ Supervisor and daemon output is in `~/.local/state/magnet-linux/audio.log`.
 Inspect the session with `wpctl status`, `pactl info`, or
 `perpls -b "$XDG_RUNTIME_DIR/magnet-audio"`.
 
-See [the desktop guide](../../magnet-linux/DESKTOP.md) for VM audio routing,
+See [the desktop guide](https://github.com/magnet-linux/magnet-linux/blob/main/magnet-linux/DESKTOP.md) for VM audio routing,
 volume controls and the test that checks QEMU's recorded output.

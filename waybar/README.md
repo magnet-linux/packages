@@ -16,14 +16,12 @@ before putting them in Lua expressions. This package targets that API; it is
 not intended for older Hyprland versions. See upstream's corresponding
 [IPC change](https://github.com/Alexays/Waybar/commit/05945748dccce28bf96d26d8f64a9e69a8dd49ba).
 
-PulseAudio volume support connects to pipewire-pulse. Optional tray, network,
-Bluetooth and systemd integrations are disabled
-in this initial build. The configured modules are Hyprland workspaces, window
-title, output volume and clock. No Sway runtime is required.
+PulseAudio volume support connects to pipewire-pulse. Network and PulseAudio support are enabled. Optional tray, Bluetooth and
+systemd integrations are disabled. The distro configures Hyprland workspaces,
+window title, network, output volume and clock. No Sway runtime is required.
 
 ```sh
-nix-shell magnet-linux/shell.nix --run \
-  'magnet-linux/_work/magpkg build --store magnet-linux/_work/store --jobs 3 --parallelism 8 packages/waybar/waybar.jsonnet waybar'
+magpkg build --store _work/store --jobs 3 --parallelism 8 waybar/waybar.jsonnet waybar
 ```
 
 `setup-login.sh` provisions `/etc/xdg/waybar/config.jsonc` and `style.css` only
@@ -31,5 +29,5 @@ when absent. User files in `~/.config/waybar/` take precedence. Hyprland starts
 Waybar once on session startup; logging out terminates it with the session.
 Its log is `~/.local/state/magnet-linux/waybar.log` (under `$XDG_STATE_HOME`
 instead when set).
-See [DESKTOP.md](../../magnet-linux/DESKTOP.md) for installation and the real
+See [DESKTOP.md](https://github.com/magnet-linux/magnet-linux/blob/main/magnet-linux/DESKTOP.md) for installation and the real
 QEMU test, including clicking a workspace button and checking reserved space.

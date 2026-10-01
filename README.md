@@ -1,7 +1,7 @@
 # Packages
 
 The minimal bootable system, configuration skeleton, manual installation
-procedure, and headless QEMU test live in [magnet-linux](../magnet-linux/README.md).
+procedure, and headless QEMU test live in [magnet-linux](https://github.com/magnet-linux/magnet-linux/blob/main/magnet-linux/README.md).
 
 `doas.jsonnet` builds OpenDoas 6.8.2 with the shared Linux-PAM package. The base
 system installs `/bin/doas` as root-owned mode 4755. Editable authorization and
@@ -38,49 +38,66 @@ recovery. `/etc/xdg/mako/config` supplies the initial appearance and timeouts.
 
 ## Bootstrap hello
 
-`hello.jsonnet` builds a statically linked hello-world executable using the
-reproducible bootstrap root:
+Install a released [magpkg](https://github.com/magnet-linux/magpkg) executable
+and bubblewrap on an x86-64 Linux host, then run from this tree's root:
 
 ```sh
-go -C magpkg run ./cmd/magpkg init
-go -C magpkg run ./cmd/magpkg build \
+./bootstrap/fetch.sh
+magpkg init --store "$PWD/_work/store"
+magpkg build --store "$PWD/_work/store" \
   --ext-str "bootstrap-url=file://$PWD/bootstrap/out/bootstrap.tar.zst" \
-  ../magnet-linux/seed-store.jsonnet seed
-go -C magpkg run ./cmd/magpkg build ../packages/hello.jsonnet
+  bootstrap/seed.jsonnet seed
+magpkg build --store "$PWD/_work/store" hello.jsonnet hello
 ```
 
-The command prints the resulting package archive path. The executable is
-stored as `bin/hello` inside that archive.
+The seed helper populates the source cache by its content hash. Normal recipes
+can then use that seed without changing their identities. Installed Magnet
+systems retain a copy at `/var/lib/magpkg/bootstrap.tar.zst` too. The seed can
+also be built from source using [bootstrap/README.md](bootstrap/README.md).
+No sibling source repository is required.
 
 ## Magpkg
 
-`magpkg.jsonnet` builds the Go implementation from public commit
-`245ac58457491cb9721edfeb3e06402605ba1a20` (on the `gowip` branch):
+`magpkg.jsonnet` builds the standalone `magnet-linux/magpkg` v0.1.0 source
+release, pinned by SHA-256:
 
 ```sh
-go -C magpkg run ./cmd/magpkg build ../packages/magpkg.jsonnet magpkg
+magpkg build --store "$PWD/_work/store" magpkg.jsonnet magpkg
 ```
 
-The result is a static `/bin/magpkg`. Its runtime dependencies include Bash and GNU shell utilities,
-bubblewrap, and Mozilla CA certificates for HTTPS downloads. The distro selects
-it in its base system; `magnet-linux/setup-tree.sh` separately installs editable
-recipes, a system selection, and the bootstrap seed.
-The running kernel must support the namespaces required by bubblewrap.
+The resulting `/bin/magpkg` is statically linked. Its runtime dependencies
+include Bash and GNU shell utilities, bubblewrap, and CA certificates. The
+kernel must support the namespaces required by bubblewrap.
 
-The GitHub commit tarball is pinned by SHA-256. GitHub can change its archive
-compression without changing the source; we accept that limitation for now and
-leave a TODO beside the fetch to mirror the exact bytes or publish a source
-release asset. A changed archive fails verification.
+`go.jsonnet` packages the official Go 1.26.4 Linux/amd64 binary toolchain as a
+build dependency; rebuilding Go from source is a follow-up.
+`magpkg-modules.libsonnet` pins module downloads and the recipe constructs an
+offline module proxy, verifies `go.sum`, runs tests, and builds the executable.
+The magpkg project also publishes a static binary for installation hosts.
 
-`go.jsonnet` currently packages the official Go 1.26.4 Linux/amd64 binary
-toolchain as a build dependency; rebuilding Go from source is a follow-up.
-`magpkg-modules.libsonnet` pins the raw `.mod` and `.zip` downloads for the
-commit's module graph. The recipe assembles a local file proxy, checks the
-modules against the source's `go.sum`, runs the Go tests, and builds without
-network access. Updating the source pin requires refreshing the module manifest
-from that commit's `go mod download -json all` output and hashing the referenced
-`GoMod` and `Zip` files. Uppercase module path characters use Go's `!lowercase`
-proxy escaping.
+## Releases and integration
+
+This tree is released independently of the package manager and distro. Its
+initial format uses magpkg v0.1.0. The distro pins a tree archive by SHA-256,
+while Git remains an optional development workflow.
+
+```sh
+make test
+BOOTSTRAP_ARCHIVE=/path/to/bootstrap.tar.zst ./scripts/release.sh v0.1.0 HEAD
+```
+
+The tests evaluate every package graph with the released magpkg Go library;
+Go is needed for these maintainer tests, but not for using downloaded recipes.
+The release script exports committed source into `packages-v0.1.0.tar.gz`,
+records its Git revision in `RELEASE`, and creates SHA256SUMS. With the optional
+`BOOTSTRAP_ARCHIVE`, it also publishes the verified bootstrap as a separate
+asset. Upload these files as GitHub release assets and retain their exact
+bytes. Run the script twice at the same commit to check reproducibility.
+
+`linux.libsonnet` exports `kernel(config, name)` for callers to provide a kernel
+configuration. System profiles, service configuration and Magnet-specific
+session launchers belong to the distro. All recipe imports stay within this
+repository; application patches and shared libraries remain here.
 
 ## Core
 
@@ -107,10 +124,10 @@ Each exported field is a build root. For example, this rebuilds GCC and all of
 its prerequisites:
 
 ```sh
-go -C magpkg run ./cmd/magpkg build \
+magpkg build \
   --jobs 1 \
   --parallelism "$(nproc)" \
-  ../packages/core.jsonnet gcc
+  core.jsonnet gcc
 ```
 
 The other roots are `make`, `musl`, `musl_rt`, `binutils`, `coreutils`,
@@ -128,14 +145,14 @@ launcher controls bubblewrap mounts, isolation, and the default interactive
 shell:
 
 ```sh
-go -C magpkg run ./cmd/magpkg shell ../packages/shell.jsonnet shell
+magpkg shell shell.jsonnet shell
 ```
 
 A command after `--` is passed unchanged to the launcher:
 
 ```sh
-go -C magpkg run ./cmd/magpkg shell \
-  ../packages/shell.jsonnet shell -- cc --version
+magpkg shell \
+  shell.jsonnet shell -- cc --version
 ```
 
 Package-provided launchers execute on the host with the invoking user's
@@ -144,14 +161,14 @@ caches should be used for shell environments.
 
 ## Wayland desktop
 
-The desktop is selected by `magnet-linux/desktop-hyprland.jsonnet`.
+The distro selects its desktop in `magnet-linux/desktop-hyprland.jsonnet`.
 [Hyprland](hyprland/README.md) supplies the compositor and Mesa graphics;
 [login](login/README.md) supplies greetd and its GTK greeter. Foot, Waybar,
 Fuzzel, notifications, audio, and NetworkManager complete the desktop.
 Shared musl libraries are defined in `desktop-libs.jsonnet`; native build
 tools live in `desktop-tools.jsonnet`. Sources are pinned by SHA-256.
 
-See [the desktop guide](../magnet-linux/DESKTOP.md) for installation,
+See [the desktop guide](https://github.com/magnet-linux/magnet-linux/blob/main/magnet-linux/DESKTOP.md) for installation,
 configuration, and graphical QEMU tests.
 
 The optional [Firefox recipes](firefox/README.md) and

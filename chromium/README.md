@@ -18,9 +18,8 @@ uses its software rendering path.
 ## Build
 
 ```sh
-nix-shell magnet-linux/shell.nix
-magnet-linux/_work/magpkg build --store magnet-linux/_work/store \
-  --jobs 1 --parallelism 16 packages/chromium/chromium.jsonnet chromium
+magpkg build --store _work/store \
+  --jobs 1 --parallelism 16 chromium/chromium.jsonnet chromium
 ```
 
 LLVM/Clang/LLD 22.1.8, compiler builtins, Rust/Cargo 1.97.0, GN, bindgen and
@@ -46,8 +45,10 @@ Select `desktop-chromium` or `desktop-browsers` from
 `magnet-linux/desktop-hyprland.jsonnet`. Use the complete system
 selection when syncing; syncing just the browser into an existing system would
 remove other managed packages. Follow the staged update instructions in the
-[distro guide](../../magnet-linux/README.md).
+[distro guide](https://github.com/magnet-linux/magnet-linux/blob/main/magnet-linux/README.md).
 
+Run these installation and VM tests from a prepared checkout of
+[the distro repository](https://github.com/magnet-linux/magnet-linux).
 To create a new VM with an unprivileged desktop account:
 
 ```sh

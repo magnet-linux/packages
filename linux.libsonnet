@@ -40,13 +40,4 @@ local kernel(config, name) = {
       urls: ['https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.15.7.tar.xz'],
     }],
   };
-{
-  linux: kernel(importstr '../magnet-linux/kernel.config', 'linux-6.15.7'),
-  desktop: kernel(
-    (importstr '../magnet-linux/kernel.config') + '\n' +
-    (importstr '../magnet-linux/kernel-desktop.config'), 'linux-desktop-6.15.7') {
-      // cfg80211 verifies the signed wireless regulatory database.
-      buildDeps+: [(import './openssl.jsonnet').openssl,
-                   (import './desktop-tools.jsonnet').pkgconf],
-    },
-}
+{ kernel: kernel }

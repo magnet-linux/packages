@@ -24,9 +24,8 @@ Build on a host with substantial disk space and memory; the default 24 GiB VM
 disk is intended for installing the result, not for this full compiler build:
 
 ```sh
-nix-shell magnet-linux/shell.nix
-magnet-linux/_work/magpkg build --store magnet-linux/_work/store \
-  --jobs 1 --parallelism 16 packages/firefox/firefox.jsonnet firefox
+magpkg build --store _work/store \
+  --jobs 1 --parallelism 16 firefox/firefox.jsonnet firefox
 ```
 
 Use the `desktop-browser` root in `magnet-linux/desktop-hyprland.jsonnet` when
@@ -41,6 +40,8 @@ and library sandboxing remain enabled. Firefox's built-in updater is disabled;
 security updates must be delivered by updating the package version and hash.
 Profiles and downloads remain ordinary user files.
 
+Run the following installation and VM tests from a prepared checkout of
+[the distro repository](https://github.com/magnet-linux/magnet-linux).
 To create a VM with Firefox and graphical login:
 
 ```sh
